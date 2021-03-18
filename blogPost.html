@@ -1,0 +1,95 @@
+{% extends 'base.html' %}
+{% block style %}
+.display-4
+{
+background-color:yellow;
+}
+body
+{
+<!--background-color:khaki;-->
+}
+
+{% endblock style %}s
+
+{% block title %} BlogPost {% endblock title %}
+{% block my_blog_active %} active {% endblock my_blog_active %}
+
+<!--====================================block body========================================-->
+{% block body %}
+{% load humanize %}
+{% load extras %}
+
+<div class="container my-3"></div>
+<div class="blog-post">
+    <h2 class="blog-post-title">{{post.title}}</h2>
+    <p class="blog-post-meta">{{post.timestamp}} <a href="/about">{{post.author}}</a>(<span> {{post.views}} views</span>)</p>
+    <p>{{post.content|safe}}</p>
+</div>
+<div class="container">
+    <h2>Comments ({{comments.count}})</h2>
+    <div class="my-2">
+        {% if user.is_authenticated %}
+        <form action="/blog/PostComment" method="post">
+            {% csrf_token %}
+            <div class="form-group">
+                <input type="text" name="comment" class="form-control" placeholder="type a comment">
+                <input type="hidden" name="parent_sno" value="">
+            </div>
+            <input type="hidden" name="post_sno" value="{{post.sno}}">
+            <button type="submit" class="btn btn-success my-2">Submit</button>
+        </form>
+        {% else%}
+                    <button class="btn btn-sm btn-success my-2" type="button" data-bs-toggle="collapse" data-bs-target="#replyBox{{comment.sno}}" aria-expanded="false" aria-controls="replyBox{{comment.sno}}" disabled>login to Comment</button>
+        {% endif %}
+
+    </div>
+    {% for comment in comments %}
+    <div class="row my-3">
+        <div class="col-md-1 ">
+            <img src="user.png" alt="User">
+        </div>
+        <div class="col-md-11 ">
+            <b>{{comment.user.username}}</b>  {{comment.timestamp | naturaltime}}
+            <div>{{comment.comment}}</div>
+        </div>
+        <div class="reply mx-0">
+            {% if user.is_authenticated %}
+            <button class="btn btn-sm btn-success my-2" type="button" data-bs-toggle="collapse" data-bs-target="#replyBox{{comment.sno}}" aria-expanded="false" aria-controls="replyBox{{comment.sno}}">Reply</button>
+            <div class="collapse" id="replyBox{{comment.sno}}">
+                <div class="card card-body ">
+                    <form action="/blog/PostComment" method="post">
+                        {% csrf_token %}
+                        <div class="form-group">
+                            <input type="text" name="comment" class="form-control" placeholder="type a reply">
+                            <input type="hidden" name="parent_sno" value="{{comment.sno}}">
+                        </div>
+                            <input type="hidden" name="post_sno" value="{{post.sno}}">
+                            <button type="submit" class="btn btn-success my-2">Submit</button>
+                        </form>
+                </div>
+            </div>
+             {% else%}
+                 <button class="btn btn-sm btn-success my-2" type="button" data-bs-toggle="collapse" data-bs-target="#replyBox{{comment.sno}}" aria-expanded="false" aria-controls="replyBox{{comment.sno}}" disabled>login to Reply</button>
+             {% endif %}
+            <div class="replies">
+                {% for reply in rep_dict|get_val:comment.sno %}
+                <div class="row">
+                    <div class="col-md-1 my-3">
+                         <img src="user.png" alt="User">
+                    </div>
+                    <div class="col-md-11 my-3">
+                        <b>{{reply.user.username}}</b>  {{reply.timestamp | naturaltime}}
+                        <div>{{reply.comment}}</div>
+<!--                         {{reply.comment}}-->
+                    </div>
+                </div>
+
+                <br>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+{% endblock body %}
